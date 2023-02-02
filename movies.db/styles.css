@@ -1,0 +1,26 @@
+.pageNav{
+    display: flex;
+    justify-content: space-between;
+    /* position: fixed;
+    bottom: 0; */
+}
+.nav{
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    font-size: larger;
+    text-decoration: none;
+    color: darkgrey;
+}
+
+.hidden{
+    opacity: .5;
+    pointer-events: none;
+    text-decoration: none;
+    color: darkgray;
+}
+
+.active{
+    font-weight: bolder;
+    text-decoration: dashed;
+}
