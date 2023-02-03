@@ -29,14 +29,14 @@ function countInzendingen($id)
     return $stmt->fetch()->count;
 }
 
-function getLatest($id)
+function getLatests($id)
 {
     global $pdo;
 
     $sql = "SELECT `id`,`meterstand`,`created_at`,`updated_at` FROM `watergroep_inzendingen` WHERE `watergroep_klanten_id` = :id ORDER BY id DESC;";
     $stmt = $pdo->prepare($sql);
     $stmt->execute(['id' => $id]);
-    return $stmt->fetch();
+    return $stmt->fetchAll();
 }
 
 function getId($token)
@@ -46,7 +46,8 @@ function getId($token)
     $sql = "SELECT id FROM `watergroep_klanten` WHERE token = :token";
     $stmt = $pdo->prepare($sql);
     $stmt->execute((['token' => $token]));
-    return $stmt->fetch();
+    $response = $stmt->fetch();
+    return $response ? $response->id : "";
 }
 
 function updateToken($id, $newToken)
@@ -56,16 +57,6 @@ function updateToken($id, $newToken)
     $sql = "UPDATE `watergroep_klanten` SET `token` = :token WHERE `watergroep_klanten`.`id` = :id";
     $stmt = $pdo->prepare($sql);
     $stmt->execute(['id' => $id, 'token' => $newToken]);
-}
-
-function getAllTokens()
-{
-    global $pdo;
-
-    $sql = "SELECT token FROM `watergroep_klanten`";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute();
-    return $stmt->fetchAll();
 }
 
 function getTime($time_difference)
@@ -96,7 +87,7 @@ function getTime($time_difference)
 
 function randomToken($tokenLen)
 {
-    $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890.!?*';
+    $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
     $tokenArr = [];
     $count = strlen($chars) - 1;
     for ($i = 0; $i < $tokenLen; $i++) {

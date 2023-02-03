@@ -17,27 +17,29 @@ if (!isset($_GET) || empty($_GET["token"])) {
 require 'db.php';
 require 'functions.php';
 
-// exit;
-$id = getId($_GET["token"]);
-if (!getId($_GET["token"])) {
-    $id = "";
+$id = getid($_GET["token"]);
+if (!getid($_GET["token"])) {
+    echo "<h1>404 - This user doesn't exist</h1>";
+    exit;
 }
 
 // var_dump(getId($_GET["token"]));
+// exit;
 
 
 $klant = getKlantGeg($id);
 $aantalInzendingen = countInzendingen($id);
 $nextToken = randomToken(30);
 
-if (!$klant) {
-    echo "<h1>Onbekende klant</h1>";
-    exit;
-}
+
+// if (!$klant) {
+//     echo "<h1>Onbekende klant</h1>";
+//     exit;
+// }
 
 $naam = "$klant->voornaam $klant->achternaam";
 if ($aantalInzendingen !== 0) {
-    $latestInzending = getLatest($id);
+    $latestInzending = getLatests($id)[0];
     $latestTime = date_create($latestInzending->updated_at);
 }
 // if someone filled in the form
@@ -97,12 +99,17 @@ $pdo = null;
     <h5><?php
         if (isset($succesMsg)) {
             echo "<span class='succes'>$succesMsg<span>";
-            if ($aantalInzendingen > 0) {
-                $verschil = $_POST["meterstand"] - $latestInzending->meterstand;
+            if ($aantalInzendingen > 1) {
+                $verschilM = $_POST["meterstand"] - $latestInzending->meterstand;
+                $id = intval($_POST["id"]);
+                var_dump($id);
+                $verschilT = getLatests($id)[0]->created_at - getLatests($id)[1]->created_at;
+                var_dump($verschilT);
+                exit;
         ?>
 
-                Je hebt <span><?= $verschil ?></span> m3 verbruikt in een periode van
-                <span><?= getTime($verschil) ?></span>.
+                Je hebt <span><?= $verschilM ?></span> m3 verbruikt in een periode van
+                <span><?= getTime($verschilT) ?></span>.
             <?php } else { ?>
 
         <?php
@@ -114,6 +121,7 @@ $pdo = null;
 
     <?php if (!isset($succesMsg)) : ?>
         <form action="" method="POST">
+            <input type="hidden" name="id" value="<?= $id ?>">
             <label for="vnaam">Voornaam: </label><input disabled type="text" name="vnaam" id="vnaam" value="<?= $klant->voornaam ?>">
             <label for="anaam">Achternaam: </label><input disabled type="text" name="anaam" id="anaam" value="<?= $klant->achternaam ?>">
             <label for="straat">Straatnaam: </label><input disabled type="text" name="straat" id="straat" value="<?= $klant->straatnaam ?>">
