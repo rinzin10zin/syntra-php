@@ -1,16 +1,13 @@
 <?php
-// date_default_timezone_set("Europe/Brussels");
 
-// Truncate table watergroep_inzendingen;
-// delete from watergroep_klanten WHERE id > 2;
-
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+// ini_set('display_errors', 1);
+// ini_set('display_startup_errors', 1);
+// error_reporting(E_ALL);
 
 // als er geen $_get staat of $_get is leeg dan toon html
 if (!isset($_GET) || empty($_GET["token"])) {
-    echo "<h1>404 - This page doesnt exist</h1>";
+    echo "<h1>404 - This page doesnt exist</h1><a href='https://s6.syntradeveloper.be/watergroep/?token=YP6AehSn51xCNY3Qn35QrvxBVJmebd'><img src='./kristofQr.png' alt=''></a>
+    <p>Klik op deze QR of scan ze om door te gaan als Kristof Grenson</p>";
     exit;
 }
 
@@ -19,23 +16,15 @@ require 'functions.php';
 
 $id = getid($_GET["token"]);
 if (!getid($_GET["token"])) {
-    echo "<h1>404 - This user doesn't exist</h1>";
+    echo "<h1>QR-code ongeldig</h1><a href='https://s6.syntradeveloper.be/watergroep/?token=PVsGPIefCAaepy9Due8f51Mz1MmEmz'><img src='./thibaultQr.png' alt=''></a>
+    <p>Klik op deze QR of scan ze om door te gaan als Thibault</p>";
     exit;
 }
-
-// var_dump(getId($_GET["token"]));
-// exit;
-
 
 $klant = getKlantGeg($id);
 $aantalInzendingen = countInzendingen($id);
 $nextToken = randomToken(30);
 
-
-// if (!$klant) {
-//     echo "<h1>Onbekende klant</h1>";
-//     exit;
-// }
 
 $naam = "$klant->voornaam $klant->achternaam";
 if ($aantalInzendingen !== 0) {
@@ -65,11 +54,6 @@ if (isset($_POST["meterstand"]) && !empty($_POST["meterstand"])) {
     }
 }
 
-// echo "<pre>";
-// var_dump($_POST);
-// echo "</pre>";
-// exit;
-
 $pdo = null;
 ?>
 
@@ -85,53 +69,55 @@ $pdo = null;
 </head>
 
 <body>
-    <h2>Meterstanden van <?= $naam ?> doorgeven</h2>
-    <h5><?php
-        // als er inzendingen zijn 
-        if ($aantalInzendingen !== 0 && !isset($succesMsg)) {
-        ?>
+    <div id="form-container">
+        <h2>Meterstanden van <?= $naam ?> doorgeven</h2>
+        <h5><?php
+            // als er inzendingen zijn 
+            if ($aantalInzendingen !== 0 && !isset($succesMsg)) {
+            ?>
 
-            Uw laatste inzending had een meterstand van <span><?= $latestInzending->meterstand ?></span> m3.<br>
-            Deze werd laatst geupdate op <span><?= date_format($latestTime, "d/m/Y H:i:s") ?></span>.
-        <?php }
-        ?>
-    </h5>
-    <h5><?php
-        if (isset($succesMsg)) {
-            echo "<span class='succes'>$succesMsg<span>";
-            if ($aantalInzendingen > 1) {
-                $verschilM = $_POST["meterstand"] - $latestInzending->meterstand;
-                $id = intval($_POST["id"]);
-                var_dump($id);
-                $verschilT = getLatests($id)[0]->created_at - getLatests($id)[1]->created_at;
-                var_dump($verschilT);
-                exit;
-        ?>
+                Uw laatste inzending had een meterstand van <span><?= $latestInzending->meterstand ?></span> m3.<br>
+                Deze werd laatst geupdate op <span><?= date_format($latestTime, "d/m/Y H:i:s") ?></span>.
+            <?php }
+            ?>
+        </h5>
+        <h5><?php
+            if (isset($succesMsg)) {
+                echo "<span class='succes'>$succesMsg<span>";
+                if ($aantalInzendingen > 0) {
+                    $verschil = $_POST["meterstand"] - $latestInzending->meterstand;
+                    // var_dump($_POST["time"]);
+                    // var_dump($latestInzending);
+                    $lastDate = strtotime($latestInzending->created_at);
+            ?>
 
-                Je hebt <span><?= $verschilM ?></span> m3 verbruikt in een periode van
-                <span><?= getTime($verschilT) ?></span>.
-            <?php } else { ?>
+                    Je hebt <span><?= $verschil ?></span> m3 verbruikt in een periode van
+                    <span><?= getTime($lastDate) ?></span>.
+                <?php } else { ?>
 
-        <?php
+            <?php
+                }
             }
-        }
-        ?>
-    </h5>
-    <h5 class="error"><?= isset($errMsg) ? $errMsg : "" ?></h5>
+            ?>
+        </h5>
+        <h5 class="error"><?= isset($errMsg) ? $errMsg : "" ?></h5>
 
-    <?php if (!isset($succesMsg)) : ?>
-        <form action="" method="POST">
-            <input type="hidden" name="id" value="<?= $id ?>">
-            <label for="vnaam">Voornaam: </label><input disabled type="text" name="vnaam" id="vnaam" value="<?= $klant->voornaam ?>">
-            <label for="anaam">Achternaam: </label><input disabled type="text" name="anaam" id="anaam" value="<?= $klant->achternaam ?>">
-            <label for="straat">Straatnaam: </label><input disabled type="text" name="straat" id="straat" value="<?= $klant->straatnaam ?>">
-            <label for="nummer">Huis- en busnummer: </label><input disabled type="text" name="nummer" id="nummer" value="<?= $klant->nummerbus ?>">
-            <label for="postcode">Postcode: </label><input disabled type="number" name="postcode" id="postcode" value="<?= $klant->postcode ?>" min="1000" max="9999">
-            <label for="locatie">Locatie: </label><input disabled type="text" name="locatie" id="locatie" value="<?= $klant->locatie ?>">
-            <label for="meterstand">Huidige meterstand: </label><input type="number" name="meterstand" id="meterstand" min="0" max="999999">
-            <br><button type="submit" style="width: 20%;">Verzenden</button>
-        </form>
-    <?php endif ?>
+        <?php if (!isset($succesMsg)) : ?>
+            <div>
+                <form action="" method="POST">
+                    <!-- <input type="hidden" name="time" value="<?= $latestInzending->created_at ?>"> -->
+                    <label for="vnaam">Voornaam: </label><input disabled type="text" name="vnaam" id="vnaam" value="<?= $klant->voornaam ?>">
+                    <label for="anaam">Achternaam: </label><input disabled type="text" name="anaam" id="anaam" value="<?= $klant->achternaam ?>">
+                    <label for="straat">Straatnaam: </label><input disabled type="text" name="straat" id="straat" value="<?= $klant->straatnaam ?>">
+                    <label for="nummer">Huis- en busnummer: </label><input disabled type="text" name="nummer" id="nummer" value="<?= $klant->nummerbus ?>">
+                    <label for="postcode">Postcode: </label><input disabled type="number" name="postcode" id="postcode" value="<?= $klant->postcode ?>" min="1000" max="9999">
+                    <label for="locatie">Locatie: </label><input disabled type="text" name="locatie" id="locatie" value="<?= $klant->locatie ?>">
+                    <label for="meterstand">Huidige meterstand: </label><input type="number" name="meterstand" id="meterstand" min="0" max="999999">
+                    <br><button type="submit" style="width: 20%;">Verzenden</button>
+                </form>
+            </div>
+        <?php endif ?>
+    </div>
 </body>
 
 </html>

@@ -59,9 +59,9 @@ function updateToken($id, $newToken)
     $stmt->execute(['id' => $id, 'token' => $newToken]);
 }
 
-function getTime($time_difference)
+function getTime($time)
 {
-    // $time_difference = time() - $time;
+    $time_difference = time() - $time;
 
     if ($time_difference < 1) {
         return 'minder dan 1 seconde geleden';
